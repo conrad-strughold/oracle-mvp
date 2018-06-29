@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
-import "../Oracles/Oracle.sol";
-import "../Oracles/CentralizedOracle.sol";
-import "../Utils/Proxy.sol";
-import "../Tokens/Token.sol";
+import "./Gnosis/Oracles/Oracle.sol";
+import "./Gnosis/Oracles/CentralizedOracle.sol";
+import "./Gnosis/Utils/Proxy.sol";
+import "./Gnosis/Tokens/Token.sol";
 
 contract OracleVendingMachineData is Proxied {
 
@@ -24,7 +24,7 @@ contract OracleVendingMachineData is Proxied {
 // BASIC PROXY - ISN'T UPGRADABLE YET
 contract OracleVendingMachineProxy is Proxy, OracleVendingMachineData{
 
-  contructor(address _proxied) Proxy(_proxied){
+  constructor(address _proxied) Proxy(_proxied){
     owner = msg.sender;
   }
 

@@ -1,10 +1,10 @@
 pragma solidity ^0.4.24;
 
-import "../Oracles/Oracle.sol";
-import "../Oracles/CentralizedOracle.sol";
-import "../Utils/Proxy.sol";
-import "../Tokens/Token.sol";
-import "./OracleVendingMachineData";
+import "./Gnosis/Oracles/Oracle.sol";
+import "./Gnosis/Oracles/CentralizedOracle.sol";
+import "./Gnosis/Utils/Proxy.sol";
+import "./Gnosis/Tokens/Token.sol";
+import "./OracleVendingMachineProxy.sol";
 
 //Vending machine Logic goes in this contract
 contract OracleVendingMachine is OracleVendingMachineData {
@@ -23,15 +23,15 @@ contract OracleVendingMachine is OracleVendingMachineData {
   }
 
   function upgradeOracle(address _oracleMasterCopy) public isOwner {
-      oracleMasterCopy = _oracleMasterCopy;
+      oracleMasterCopy = Oracle(_oracleMasterCopy);
   }
 
   function changePaymentToken(address _paymentToken) public isOwner {
-      paymentToken = _paymentToken;
+      paymentToken = Token(_paymentToken);
   }
 
   function buyOracle(bytes _ipfsHash) public returns (Oracle oracle){
-      require(token.transferFrom(msg.sender, owner, fee));
+      require(paymentToken.transferFrom(msg.sender, owner, fee));
       oracle = CentralizedOracle(new CentralizedOracleProxy(oracleMasterCopy, owner, _ipfsHash));
       emit OracleCreation(msg.sender, oracle, _ipfsHash);
   }
