@@ -6,7 +6,7 @@ import "../Utils/Proxy.sol";
 import "../Tokens/Token.sol";
 import "./OracleVendingMachineData";
 
-//Vending machine Logis goes in this contract
+//Vending machine Logic goes in this contract
 contract OracleVendingMachine is OracleVendingMachineData {
 
   /*
