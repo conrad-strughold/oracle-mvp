@@ -18,6 +18,7 @@ contract OracleVendingMachine {
   uint public fee;
   Oracle oracleMasterCopy;
   Token public paymentToken;
+  bool open;
 
 
   mapping (address => uint256) public balances;
@@ -35,6 +36,12 @@ contract OracleVendingMachine {
       _;
   }
 
+  modifier whenOpen() {
+    require(open);
+    _;
+  }
+
+
   function changeFee(uint _fee) public isOwner {
       fee = _fee;
   }
@@ -45,6 +52,10 @@ contract OracleVendingMachine {
 
   function changePaymentToken(address _paymentToken) public isOwner {
       paymentToken = Token(_paymentToken);
+  }
+
+  function modifyOpenStatus(bool status) public isOwner {
+    open = status;
   }
 
   function deployOracle(bytes _ipfsHash, address maker, address taker, uint256 oracleIndex) internal returns(Oracle oracle){

@@ -1,8 +1,11 @@
 pragma solidity ^0.4.24;
 
 import "./Gnosis/Oracles/Oracle.sol";
+import "../Utils/Proxy.sol";
 
-contract CentralizedBugOracle is Oracle{
+contract CentralizedBugOracleData {
+  event OwnerReplacement(address indexed newOwner);
+  event OutcomeAssignment(int outcome);
 
   /*
    *  Storage
@@ -12,13 +15,8 @@ contract CentralizedBugOracle is Oracle{
   bool public isSet;
   int public outcome;
   uint256 public fee;
-  uint256 public fundingPeriod;
   address public maker;
   address public taker;
-  bool public ready;
-
-  mapping(address => uint256) funding;
-  mapping(address => uint256) desiredOutcome;
 
   /*
    *  Modifiers
@@ -28,26 +26,26 @@ contract CentralizedBugOracle is Oracle{
       require(msg.sender == owner);
       _;
   }
+}
 
-  /// @dev Funds the contract with tokens to pay fo rrulling
-  function fund(address _side, uint256 _amount){
-    funding[_side] += amount;
-  }
+contract CentralizedOracleProxy is Proxy, CentralizedOracleData {
 
-  /// Puts the contract in a state to give rulling
-  function setReady(){
-    require(funding[maker] >= fee);
-    require(funding[taker] >= fee);
-    ready = true;
-  }
-
-  //Gives a rulling in favor of maker  if taker doesn not fund the contract in appropriate time
-  function walkoverRulling() {
-    if(now > fundingPeriod){
-      require(funding[maker] > fee);
-      _setOutcome(desiredOutcome(maker));
+    /// @dev Constructor sets owner address and IPFS hash
+    /// @param _ipfsHash Hash identifying off chain event description
+    constructor(address proxied, address _owner, bytes _ipfsHash, address _maker, address _taker);
+        public
+        Proxy(proxied)
+    {
+        // Description hash cannot be null
+        require(_ipfsHash.length == 46);
+        owner = _owner;
+        ipfsHash = _ipfsHash;
+        maker = _maker;
+        taker = _taker;
     }
-  }
+}
+
+contract CentralizedBugOracle is Proxied,Oracle, CentralizedBugOracleData{
 
   /// @dev Sets event outcome
   /// @param _outcome Event outcome
