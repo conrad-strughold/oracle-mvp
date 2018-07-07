@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./Gnosis/Oracles/Oracle.sol";
-import "../Utils/Proxy.sol";
+import "./Gnosis/Utils/Proxy.sol";
 
 contract CentralizedBugOracleData {
   event OwnerReplacement(address indexed newOwner);
@@ -28,11 +28,11 @@ contract CentralizedBugOracleData {
   }
 }
 
-contract CentralizedOracleProxy is Proxy, CentralizedOracleData {
+contract CentralizedBugOracleProxy is Proxy, CentralizedBugOracleData {
 
     /// @dev Constructor sets owner address and IPFS hash
     /// @param _ipfsHash Hash identifying off chain event description
-    constructor(address proxied, address _owner, bytes _ipfsHash, address _maker, address _taker);
+    constructor(address proxied, address _owner, bytes _ipfsHash, address _maker, address _taker)
         public
         Proxy(proxied)
     {
@@ -55,7 +55,6 @@ contract CentralizedBugOracle is Proxied,Oracle, CentralizedBugOracleData{
   {
       // Result is not set yet
       require(!isSet);
-      require(ready);
       _setOutcome(_outcome);
   }
 
