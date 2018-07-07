@@ -41,6 +41,14 @@ contract OracleVendingMachine {
     _;
   }
 
+  constructor(uint _fee, address _token, address _oracleMasterCopy) public {
+    owner = msg.sender;
+    fee = _fee;
+    paymentToken = Token(_token);
+    oracleMasterCopy = Oracle(_oracleMasterCopy);
+    open = true;
+  }
+
 
   function changeFee(uint _fee) public isOwner {
       fee = _fee;
