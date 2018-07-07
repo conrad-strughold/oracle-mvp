@@ -71,16 +71,16 @@ contract OracleVendingMachine {
     if(balanceChecked[msg.sender]) checkBalance();
     require(balances[msg.sender] = balances[msg.sender].sub(fee));
     require(!oracleAccepted[maker][msg.sender][index]);
-    oracleAccepted[maker][msg.sneder][index] = true;
+    oracleAccepted[maker][msg.sender][index] = true;
   }
 
-  function buyOracle(bytes _ipfsHash, address taker) public returns (uint index){
+  function buyOracle(bytes _ipfsHash, address taker) public whenOpen returns (uint index){
     if(balanceChecked[msg.sender]) checkBalance();
     require(balances[msg.sender] = balances[msg.sender].sub(fee));
     index = oracleIndexes[msg.sender][taker];
   }
 
-  function buyOracleFor(bytes _ipfsHash, address maker, address taker) public isOwner (){
+  function buyOracleFor(bytes _ipfsHash, address maker, address taker) public whenOpen isOwner{
     if(balanceChecked[maker]) checkBalance();
     if(balanceChecked[taker]) checkBalance();
 
