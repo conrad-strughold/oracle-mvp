@@ -1,4 +1,5 @@
 const VendingMachine = artifacts.require("OracleVendingMachine");
+const Math = artifacts.require("Math");
 const CentralizedBugOracle = artifacts.require("CentralizedBugOracle");
 const Token = artifacts.require("SolidToken");
 
@@ -15,7 +16,17 @@ contract("Vending Machine", (accounts) => {
 
     it("Deplys correctly", async() => {
       vendingMachine = await VendingMachine.new(fee, token.address, masterOracle.address);
+      let _fee = await vendingMachine.fee()
+      assert.equal(fee, _fee.toNumber())
     })
+
+    it("Correctly accounts for token credits", async() => {
+      let bal = await token.balanceOf(accounts[0]);
+      await vendingMachine.checkBalance(accounts[0]);
+      let credit = await vendingMachine.balances(accounts[0]);
+      assert.equal(bal.toNumber(), credit.toNumber());
+    })
+
   })
 
 })

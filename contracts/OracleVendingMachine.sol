@@ -1,15 +1,14 @@
 pragma solidity ^0.4.24;
 
-import "./Gnosis/Oracles/Oracle.sol";
-//import "./Gnosis/Oracles/CentralizedOracle.sol";
-import "./Gnosis/Utils/Proxy.sol";
-import "./Gnosis/Utils/Math.sol";
-import "./Gnosis/Tokens/Token.sol";
+import "./Oracle.sol";
+import "./Proxy.sol";
+import "./SafeMath.sol";
+import "./Token.sol";
 import "./CentralizedBugOracle.sol";
 
 //Vending machine Logic goes in this contract
 contract OracleVendingMachine {
-  using Math for uint256;
+  using SafeMath for *;
 
   /*
    *  events

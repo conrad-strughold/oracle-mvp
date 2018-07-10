@@ -402,6 +402,9 @@ contract SolidToken is MintableToken {
   bool public transfersEnabled = false;
   uint256 public transferEnablingDate;
 
+  constructor(){
+    balances[msg.sender] = 1000  * 10**18;
+  }
 
   /**
    * @dev Sets the date that the tokens becomes transferable
