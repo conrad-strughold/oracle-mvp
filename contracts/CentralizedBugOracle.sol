@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "./Gnosis/Oracles/Oracle.sol";
-import "./Gnosis/Utils/Proxy.sol";
+import "./Oracle.sol";
+import "./Proxy.sol";
 
 contract CentralizedBugOracleData {
   event OwnerReplacement(address indexed newOwner);
@@ -14,7 +14,6 @@ contract CentralizedBugOracleData {
   bytes public ipfsHash;
   bool public isSet;
   int public outcome;
-  uint256 public fee;
   address public maker;
   address public taker;
 
