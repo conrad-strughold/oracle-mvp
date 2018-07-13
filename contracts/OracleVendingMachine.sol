@@ -24,9 +24,9 @@ contract OracleVendingMachine {
    */
   address public owner;
   uint public fee;
-  Oracle oracleMasterCopy;
+  Oracle public oracleMasterCopy;
   Token public paymentToken;
-  bool open;
+  bool public open;
 
 
   mapping (address => uint256) public balances;
