@@ -1,5 +1,4 @@
 const VendingMachine = artifacts.require("OracleVendingMachine");
-const Math = artifacts.require("Math");
 const CentralizedBugOracle = artifacts.require("CentralizedBugOracle");
 const Token = artifacts.require("SolidToken");
 
@@ -128,10 +127,7 @@ contract("Vending Machine", (accounts) => {
     it("Correctly changes the mastercopy", async() => {
       let newMaster = await CentralizedBugOracle.new();
       await vendingMachine.upgradeOracle(newMaster.address);
-      //let mc = await vendingMachine.oracleMasterCopy()
-      /**
-      TODO check master copy changed
-      **/
+      let mc = await vendingMachine.oracleMasterCopy()
       assert.equal(mc, newMaster.address);
     })
 
