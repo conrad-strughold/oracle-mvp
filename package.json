@@ -1,0 +1,26 @@
+{
+  "name": "oracle-mvp",
+  "version": "1.0.0",
+  "description": "smart contracts for Solidifieds Bug Prediciton Oracle",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/solidified-platform/oracle-mvp.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/solidified-platform/oracle-mvp/issues"
+  },
+  "homepage": "https://github.com/solidified-platform/oracle-mvp#readme",
+  "devDependencies": {
+    "coveralls": "^3.0.2",
+    "solidity-coverage": "^0.5.5"
+  }
+}
