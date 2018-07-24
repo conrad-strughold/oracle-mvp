@@ -19,6 +19,12 @@ contract OracleVendingMachine {
   event OracleDeployed(address maker, address taker, uint256 index, bytes hash, address oracle);
   event OracleRevoked(address maker, address taker, uint256 index, bytes hash);
 
+  event FeeUpdated(uint256 newFee);
+  event OracleUpgraded(address newAddress);
+  event PaymentTokenChanged(address newToken);
+  event StatusChanged(bool newStatus);
+  event OracleBoughtFor(address buyer, address maker, address taker, uint256 index, bytes ipfsHash, address oracle);
+
   /*
    *  Storage
    */
@@ -70,6 +76,7 @@ contract OracleVendingMachine {
   **/
   function changeFee(uint _fee) public isOwner {
       fee = _fee;
+      emit FeeUpdated(_fee);
   }
 
   /**
@@ -77,7 +84,9 @@ contract OracleVendingMachine {
     @param _oracleMasterCopy The address of the deployed version of the oracle which will be proxied to
   **/
   function upgradeOracle(address _oracleMasterCopy) public isOwner {
-      oracleMasterCopy = Oracle(_oracleMasterCopy);
+    require(_oracleMasterCopy != 0x0);
+    oracleMasterCopy = Oracle(_oracleMasterCopy);
+    emit OracleUpgraded(_oracleMasterCopy);
   }
 
   /**
@@ -85,7 +94,9 @@ contract OracleVendingMachine {
     @param _paymentToken the Address of the token used for paymentToken
   **/
   function changePaymentToken(address _paymentToken) public isOwner {
-      paymentToken = Token(_paymentToken);
+    require(_paymentToken != 0x0);
+    paymentToken = Token(_paymentToken);
+    emit PaymentTokenChanged(_paymentToken);
   }
 
   /**
@@ -94,6 +105,7 @@ contract OracleVendingMachine {
   **/
   function modifyOpenStatus(bool status) public isOwner {
     open = status;
+    emit StatusChanged(status);
   }
 
 
@@ -159,10 +171,13 @@ contract OracleVendingMachine {
     balances[maker] = balances[maker].sub(fee);
     balances[taker] = balances[taker].sub(fee);
 
+    uint256 index = oracleIndexes[maker][taker];
+
     oracleProposed[maker][taker][oracleIndexes[maker][taker]] = _ipfsHash;
     oracle = deployOracle(_ipfsHash,maker,taker,oracleIndexes[maker][taker]);
     oracleDeployed[maker][taker][oracleIndexes[maker][taker]] = oracle;
     oracleIndexes[maker][taker] += 1;
+    emit OracleBoughtFor(msg.sender, maker, taker, index, _ipfsHash, oracle);
   }
 
   /**
