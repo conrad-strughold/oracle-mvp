@@ -74,7 +74,7 @@ contract("Vending Machine", (accounts) => {
       let index = tx.logs[0].args.index.toNumber()
       let event = tx.logs[0].event
       let or = await vendingMachine.oracleProposed(maker, taker, index);
-      assert.equal(web3.toAscii(or), hash2);
+      assert.equal(web3.toAscii(or[0]), hash2);
       assert.equal(event, "OracleProposed")
     })
 

@@ -38,8 +38,14 @@ contract OracleVendingMachine {
   mapping (address => uint256) public balances;
   mapping (address => bool) public balanceChecked;
   mapping (address => mapping (address => uint256)) public oracleIndexes;
-  mapping (address => mapping (address => mapping (uint256 => bytes))) public oracleProposed;
+  mapping (address => mapping (address => mapping (uint256 => proposal))) public oracleProposed;
   mapping (address => mapping (address => mapping (uint256 => address))) public oracleDeployed;
+
+  struct proposal {
+    bytes hash;
+    address oracleMasterCopy;
+    uint256 fee;
+  }
 
   /*
    *  Modifiers
@@ -111,17 +117,17 @@ contract OracleVendingMachine {
 
   /**
     @dev Internal function to deploy and register a oracle
-    @param _ipfsHash The hash for the bug information(description, spurce code, etc)
+    @param _proposal A proposal struct containing the bug information
     @param maker the Address who proposed the oracle
     @param taker the Address who accepted the oracle
     @param index The index of the oracle to be deployed
     @return A deployed oracle contract
   **/
-  function deployOracle(bytes _ipfsHash, address maker, address taker, uint256 index) internal returns(Oracle oracle){
+  function deployOracle(proposal _proposal, address maker, address taker, uint256 index) internal returns(Oracle oracle){
     require(oracleDeployed[maker][taker][index] == address(0));
-    oracle = CentralizedBugOracle(new CentralizedBugOracleProxy(oracleMasterCopy, owner, _ipfsHash, maker, taker));
+    oracle = CentralizedBugOracle(new CentralizedBugOracleProxy(_proposal.oracleMasterCopy, owner, _proposal.hash, maker, taker));
     oracleDeployed[maker][taker][index] = oracle;
-    emit OracleDeployed(maker, taker, index, _ipfsHash, oracle);
+    emit OracleDeployed(maker, taker, index, _proposal.hash, oracle);
   }
 
 
@@ -132,14 +138,14 @@ contract OracleVendingMachine {
     @return A deployed oracle contract
   **/
   function confirmOracle(address maker, uint index) public returns(Oracle oracle) {
-    require(oracleProposed[maker][msg.sender][index].length > 0);
+    require(oracleProposed[maker][msg.sender][index].fee > 0);
 
     if(!balanceChecked[msg.sender]) checkBalance(msg.sender);
     balances[msg.sender] = balances[msg.sender].sub(fee);
 
     oracle = deployOracle(oracleProposed[maker][msg.sender][index], maker, msg.sender, index);
     oracleIndexes[maker][msg.sender] += 1;
-    emit OracleAccepted(maker, msg.sender, index, oracleProposed[maker][msg.sender][index]);
+    emit OracleAccepted(maker, msg.sender, index, oracleProposed[maker][msg.sender][index].hash);
   }
 
 
@@ -153,7 +159,7 @@ contract OracleVendingMachine {
     if(!balanceChecked[msg.sender]) checkBalance(msg.sender);
     balances[msg.sender] = balances[msg.sender].sub(fee);
     index = oracleIndexes[msg.sender][taker];
-    oracleProposed[msg.sender][taker][index] = _ipfsHash;
+    oracleProposed[msg.sender][taker][index] = proposal(_ipfsHash, oracleMasterCopy, fee);
     emit OracleProposed(msg.sender, taker, index, _ipfsHash);
   }
 
@@ -172,9 +178,10 @@ contract OracleVendingMachine {
     balances[taker] = balances[taker].sub(fee);
 
     uint256 index = oracleIndexes[maker][taker];
+    proposal memory oracleProposal  = proposal(_ipfsHash, oracleMasterCopy, fee);
 
-    oracleProposed[maker][taker][oracleIndexes[maker][taker]] = _ipfsHash;
-    oracle = deployOracle(_ipfsHash,maker,taker,oracleIndexes[maker][taker]);
+    oracleProposed[maker][taker][index] = oracleProposal;
+    oracle = deployOracle(oracleProposal,maker,taker,index);
     oracleDeployed[maker][taker][oracleIndexes[maker][taker]] = oracle;
     oracleIndexes[maker][taker] += 1;
     emit OracleBoughtFor(msg.sender, maker, taker, index, _ipfsHash, oracle);
@@ -186,12 +193,15 @@ contract OracleVendingMachine {
     @param index The index of the proposed to be revoked
   **/
   function revokeOracle(address taker, uint256 index) public {
-    require(oracleProposed[msg.sender][taker][index].length >  0);
+    require(oracleProposed[msg.sender][taker][index].fee >  0);
     require(oracleDeployed[msg.sender][taker][index] == address(0));
-    bytes memory hash = oracleProposed[msg.sender][taker][index];
-    oracleProposed[msg.sender][taker][index] = "";
-    balances[msg.sender] = balances[msg.sender].add(fee);
-    emit OracleRevoked(msg.sender, taker, index, hash);
+    proposal memory oracleProposal = oracleProposed[msg.sender][taker][index];
+    oracleProposed[msg.sender][taker][index].hash = "";
+    oracleProposed[msg.sender][taker][index].fee = 0;
+    oracleProposed[msg.sender][taker][index].oracleMasterCopy = address(0);
+
+    balances[msg.sender] = balances[msg.sender].add(oracleProposal.fee);
+    emit OracleRevoked(msg.sender, taker, index, oracleProposal.hash);
   }
 
   /**
