@@ -9,4 +9,4 @@ script:
   - npm test
 
 after_success:
-  - npm run coverage && cat coverage/lcov.info | coveralls
+  - cat coverage/lcov.info | ./node_modules/.bin/coveralls
