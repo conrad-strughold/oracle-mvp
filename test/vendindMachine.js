@@ -39,15 +39,15 @@ contract("Vending Machine", (accounts) => {
     })
 
     it("Correctly accounts for token credits", async() => {
-      let bal = await token.balanceOf(accounts[0]);
+      let bal = await token.balanceOf.call(accounts[0]);
       await vendingMachine.checkBalance(accounts[0]);
       let credit = await vendingMachine.balances(accounts[0]);
-      assert.equal(bal.toNumber(), credit.toNumber());
+      assert.equal(credit.toNumber(), bal.toNumber());
     })
 
     it("Correctly deploys contract using priviledged function", async() =>{
-      let bal1 = await token.balanceOf(maker);
-      let bal2 = await token.balanceOf(taker);
+      let bal1 = await token.balanceOf.call(maker);
+      let bal2 = await token.balanceOf.call(taker);
       await vendingMachine.buyOracleFor(hash, maker, taker);
       let bal3 = await vendingMachine.balances(maker);
       let bal4 = await vendingMachine.balances(taker);
