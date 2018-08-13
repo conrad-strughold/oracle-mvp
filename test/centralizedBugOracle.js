@@ -1,6 +1,16 @@
 const CentralizedBugOracle = artifacts.require("CentralizedBugOracle");
 const CentralizedBugOracleProxy = artifacts.require("CentralizedBugOracleProxy")
 
+const assertRevert = async promise => {
+  try {
+    await promise;
+    assert.fail('Expected revert not received');
+  } catch (error) {
+    const revertFound = error.message.search('revert') >= 0;
+    assert(revertFound, `Expected "revert", got ${error} instead`);
+  }
+};
+
 contract("OracleBugBounty", (accounts) => {
 
   let cbo, proxy, masterCopy = {}
@@ -33,10 +43,19 @@ contract("OracleBugBounty", (accounts) => {
       assert.equal(mc, masterCopy.address);
     })
 
+    it("Fails to inilize with incorrect parameters", async() =>{
+      let bigHash = hash + hash;
+      await assertRevert(CentralizedBugOracleProxy.new(masterCopy.address, owner, bigHash, maker, taker))
+    })
+
     it("Initializes with empty rulling", async() => {
       proxy = await CentralizedBugOracle.at(cbo.address);
       let isSet = await proxy.isOutcomeSet();
       assert.isFalse(isSet);
+    })
+
+    it("Denies rulling from non-owner", async() => {
+      await assertRevert(proxy.setOutcome(outcome, {from: accounts[8]}))
     })
 
     it("Owner can give a rulling", async() => {
@@ -45,6 +64,11 @@ contract("OracleBugBounty", (accounts) => {
       let isSet = await proxy.isOutcomeSet();
       assert.isTrue(isSet);
       assert.equal(out.toNumber(), outcome)
+    })
+
+
+    it("Owner can not give a rulling twice", async() => {
+      await assertRevert(proxy.setOutcome(outcome + 1));
     })
 
   })

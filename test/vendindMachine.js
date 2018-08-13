@@ -1,6 +1,18 @@
+//import assertRevert from './helpers/assertRevert';
+
 const VendingMachine = artifacts.require("OracleVendingMachine");
 const CentralizedBugOracle = artifacts.require("CentralizedBugOracle");
 const Token = artifacts.require("SolidToken");
+
+const assertRevert = async promise => {
+  try {
+    await promise;
+    assert.fail('Expected revert not received');
+  } catch (error) {
+    const revertFound = error.message.search('revert') >= 0;
+    assert(revertFound, `Expected "revert", got ${error} instead`);
+  }
+};
 
 const setupToken = async(holders, amount) => {
   let token = await Token.new();
@@ -43,6 +55,10 @@ contract("Vending Machine", (accounts) => {
       await vendingMachine.checkBalance(accounts[0]);
       let credit = await vendingMachine.balances(accounts[0]);
       assert.equal(credit.toNumber(), bal.toNumber());
+    })
+
+    it("Fails to check for already checked balance", async() => {
+      await assertRevert(vendingMachine.checkBalance(accounts[0]));
     })
 
     it("Correctly deploys contract using priviledged function", async() =>{
@@ -101,6 +117,16 @@ contract("Vending Machine", (accounts) => {
       assert.equal(event2, "OracleAccepted");
     })
 
+    it("Revokens an Oracle", async () => {
+      let tx = await vendingMachine.buyOracle(hash2, taker, {from: maker});
+      let index = tx.logs[0].args.index.toNumber();
+      await vendingMachine.revokeOracle(taker, index, {from: maker});
+      let or = await vendingMachine.oracleProposed(maker, taker, index);
+      assert.equal(or[0], '0x');
+      assert.equal(or[1], '0x0000000000000000000000000000000000000000');
+      assert.equal(or[2].toNumber(), 0);
+    })
+
   })
 
   context("Configuring vending machine", async() => {
@@ -129,6 +155,22 @@ contract("Vending Machine", (accounts) => {
       await vendingMachine.upgradeOracle(newMaster.address);
       let mc = await vendingMachine.oracleMasterCopy()
       assert.equal(mc, newMaster.address);
+    })
+
+    it("Fails to update to non-valid mastercopy", async() => {
+      await assertRevert(vendingMachine.upgradeOracle("0x0"));
+    })
+
+    it("Correctly closes the vending machine", async () => {
+      await vendingMachine.modifyOpenStatus(false);
+      let status = await vendingMachine.open();
+      assert.isFalse(status);
+    })
+
+    it("Correctly opens the vending machine", async () => {
+      await vendingMachine.modifyOpenStatus(true);
+      let status = await vendingMachine.open();
+      assert.isTrue(status);
     })
 
   })
