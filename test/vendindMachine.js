@@ -117,6 +117,11 @@ contract("Vending Machine", (accounts) => {
       assert.equal(event2, "OracleAccepted");
     })
 
+    it("Fails to revoke already deployed oracle", async () => {
+      let index = 1;
+      await assertRevert(vendingMachine.revokeOracle(taker, index, {from: maker}))
+    })
+
     it("Revokens an Oracle", async () => {
       let tx = await vendingMachine.buyOracle(hash2, taker, {from: maker});
       let index = tx.logs[0].args.index.toNumber();
@@ -125,6 +130,52 @@ contract("Vending Machine", (accounts) => {
       assert.equal(or[0], '0x');
       assert.equal(or[1], '0x0000000000000000000000000000000000000000');
       assert.equal(or[2].toNumber(), 0);
+    })
+  })
+
+  context("Testing alternative branches", async() => {
+    let newTaker = accounts[5]
+    let newMaker = accounts[6]
+    before(async() => {
+      masterOracle = await CentralizedBugOracle.new();
+      token = await Token.new();
+      await token.setTransferEnablingDate(2);
+      await token.enableTransfer();
+      await token.transfer(newMaker, 40000)
+      await token.transfer(newTaker, 40000)
+      vendingMachine = await VendingMachine.new(fee, token.address, masterOracle.address);
+    })
+
+    it("Fails to deploy vending machinewith wrong parameters", async() => {
+      await assertRevert(VendingMachine.new(fee, token.address, "0x0"))
+    })
+
+    it("Fails to revoke non-proposed deployed oracle", async () => {
+      let index = 0;
+      await assertRevert(vendingMachine.revokeOracle(newTaker, index, {from: newMaker}))
+    })
+
+    it("Correctly verify balance during the buying process", async () => {
+      let tx = await vendingMachine.buyOracle(hash, newTaker, {from: newMaker});
+      let bal1 = await token.balanceOf.call(newMaker);
+      let bal3 = await vendingMachine.balances(newMaker);
+      assert.equal(bal1.toNumber(), bal3.toNumber() + fee)
+    })
+
+    it("Fails to confirm non-proposed oracle", async()=>{
+      await assertRevert(vendingMachine.confirmOracle(newMaker, 5, {from: newTaker}));
+    })
+
+    it("Correctly checks taker balance when confirming oracle", async() => {
+      let tx = await vendingMachine.confirmOracle(newMaker, 0,{from: newTaker});
+      let bal1 = await token.balanceOf.call(newTaker);
+      let bal3 = await vendingMachine.balances(newTaker);
+      assert.equal(bal1.toNumber(), bal3.toNumber() + fee)
+    })
+
+    it("Refuses transactions when closed", async ()=> {
+      await vendingMachine.modifyOpenStatus(false);
+      await assertRevert(vendingMachine.buyOracleFor(hash, newMaker, newTaker))
     })
 
   })
@@ -143,11 +194,20 @@ contract("Vending Machine", (accounts) => {
       assert.equal(f.toNumber(), newFee);
     })
 
+    it("Fails to update fee if sender is not owner", async() => {
+      let newFee = 2000;
+      await assertRevert(vendingMachine.changeFee(newFee, {from: accounts[9]}));
+    })
+
     it("Correctly changes the payment token", async() => {
       let newToken = await setupToken([], 3000);
       await vendingMachine.changePaymentToken(newToken.address);
       let t = await vendingMachine.paymentToken()
       assert.equal(t, newToken.address);
+    })
+
+    it("Fails to update to non-valid payment token", async() => {
+      await assertRevert(vendingMachine.changePaymentToken("0x0"));
     })
 
     it("Correctly changes the mastercopy", async() => {
