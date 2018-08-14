@@ -170,7 +170,6 @@ contract BasicToken is ERC20Basic {
     emit Transfer(msg.sender, _to, _value);
     return true;
   }
-
   /**
   * @dev Gets the balance of the specified address.
   * @param _owner The address to query the the balance of.
