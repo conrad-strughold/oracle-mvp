@@ -1,4 +1,4 @@
-# Bug Verification Oracle
+# Bug Verification Oracle [![Build Status](https://travis-ci.org/solidified-platform/oracle-mvp.svg?branch=master)](https://travis-ci.org/solidified-platform/oracle-mvp) [![Coverage Status](https://coveralls.io/repos/github/solidified-platform/oracle-mvp/badge.svg)](https://coveralls.io/github/solidified-platform/oracle-mvp)
 Smart contracts implementing the selling of bug verification oracles(BOV)
 
 ### Centralized Bug Oracles
