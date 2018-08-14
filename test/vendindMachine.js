@@ -146,10 +146,6 @@ contract("Vending Machine", (accounts) => {
       vendingMachine = await VendingMachine.new(fee, token.address, masterOracle.address);
     })
 
-    it("Fails to deploy vending machinewith wrong parameters", async() => {
-      await assertRevert(VendingMachine.new(fee, token.address, "0x0"))
-    })
-
     it("Fails to revoke non-proposed deployed oracle", async () => {
       let index = 0;
       await assertRevert(vendingMachine.revokeOracle(newTaker, index, {from: newMaker}))
